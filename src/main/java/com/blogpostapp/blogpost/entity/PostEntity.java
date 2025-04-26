@@ -6,7 +6,7 @@ import java.util.Set;
 
 
 @Entity
-@Table(name = "post")
+@Table(name = "posts")
 public class PostEntity {
     
     @Id

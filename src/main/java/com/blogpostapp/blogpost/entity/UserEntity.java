@@ -1,12 +1,13 @@
 package com.blogpostapp.blogpost.entity;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 public class UserEntity {
     
     @Id
@@ -28,9 +29,14 @@ public class UserEntity {
     @Column(name = "user_img")
     private String userImg;
     
+    @ElementCollection
+    @CollectionTable(
+        name = "user_type",
+        joinColumns = @JoinColumn(name = "user_id")
+    )
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "ENUM('user','author')")
-    private UserType type;
+    @Column(name = "type")
+    private List<UserType> type;
     
     @ManyToMany
     @JoinTable(
@@ -40,11 +46,13 @@ public class UserEntity {
     )
     private Set<PostEntity> collaboratedPosts = new HashSet<>();
 
-
+    public enum UserType {
+        user, author
+    }
     public UserEntity() {
         
     }
-    public UserEntity(String firstName, String lastName, String email, String password, UserType type) {
+    public UserEntity(String firstName, String lastName, String email, String password, List<UserType> type) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -52,9 +60,7 @@ public class UserEntity {
         this.type = type;
     }
 
-    public enum UserType {
-        user, author
-    }
+
 
     public Integer getId() {
         return id;
@@ -104,11 +110,11 @@ public class UserEntity {
         this.userImg = userImg;
     }
 
-    public UserType getType() {
+    public List<UserType> getType() {
         return type;
     }
 
-    public void setType(UserType type) {
+    public void setType(List<UserType> type) {
         this.type = type;
     }
 

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.blogpostapp.blogpost.dao.UserRepository;
-import com.blogpostapp.blogpost.dto.AuthUserDTO;
+import com.blogpostapp.blogpost.dto.LoginUserDTO;
 import com.blogpostapp.blogpost.entity.UserEntity;
 
 @Service
@@ -16,6 +16,15 @@ public class UserServiceImp implements UserService{
     public UserServiceImp(UserRepository theUserRepository) {
         userRepository = theUserRepository;
     }
+
+    @Override
+    public Boolean userExistByEmail(String email) {
+        UserEntity user = userRepository.findByEmail(email);
+        if(user == null) {
+            return false;
+        }
+        return true;
+    }
     
     @Transactional
     @Override
@@ -24,14 +33,16 @@ public class UserServiceImp implements UserService{
         return user;
     }
 
-    @Override
-    public Boolean loginUser(AuthUserDTO user) {
-        UserEntity userEmail = userRepository.findByEmail(user.email());
-        if(userEmail == null) {
-            return false;
-        }
-         return  user.password().equals(userEmail.getPassword());
-    }
+
+
 
 
 }
+// @Override
+// public Boolean loginUser(AuthUserDTO user) {
+//     UserEntity userEmail = userRepository.findByEmail(user.email());
+//     if(userEmail == null) {
+//         return false;
+//     }
+//      return  user.password().equals(userEmail.getPassword());
+// }
