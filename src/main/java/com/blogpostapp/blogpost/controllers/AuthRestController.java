@@ -6,10 +6,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.blogpostapp.blogpost.dto.LoginUserDTO;
 import com.blogpostapp.blogpost.dto.RegisterUserDTO;
 import com.blogpostapp.blogpost.entity.UserEntity;
 import com.blogpostapp.blogpost.services.UserService;
@@ -30,23 +35,39 @@ public class AuthRestController {
 }
 
 @PostMapping("/register")
-public ResponseEntity<String> register(@RequestBody RegisterUserDTO registerUserDTO) {
+public ResponseEntity<String> register(@RequestBody RegisterUserDTO registeredUser) {
 
-    if(userService.userExistByEmail(registerUserDTO.email())) {
+    if(userService.userExistByEmail(registeredUser.email())) {
         return ResponseEntity.badRequest().body("User already exists");
     }
     UserEntity newUser= new UserEntity();
-    newUser.setEmail(registerUserDTO.email());
-    newUser.setFirstName(registerUserDTO.firstName());
-    newUser.setLastName(registerUserDTO.lastName());
-    newUser.setUserImg(registerUserDTO.userImg());
-    newUser.setType(registerUserDTO.type());
-    newUser.setPassword(passwordEncoder.encode(registerUserDTO.password()));
+    newUser.setEmail(registeredUser.email());
+    newUser.setFirstName(registeredUser.firstName());
+    newUser.setLastName(registeredUser.lastName());
+    newUser.setUserImg(registeredUser.userImg());
+    newUser.setType(registeredUser.type());
+    newUser.setPassword(passwordEncoder.encode(registeredUser.password()));
     
     UserEntity savedUser= userService.registerUser(newUser);
     return ResponseEntity.ok("User registered successfully: "+ savedUser);
 }
+
+@PostMapping("/login")
+public ResponseEntity<String> login(@RequestBody LoginUserDTO loginUser) {
+    Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUser.email(), loginUser.password()));
+    
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    return new ResponseEntity<>("User Signed in successfully! ", HttpStatus.OK);
+
 }
+    
+}
+
+
+
+
+
 
 /*
  *     private JwtService jwtService;
