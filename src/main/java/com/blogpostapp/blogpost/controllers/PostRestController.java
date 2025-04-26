@@ -4,8 +4,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.blogpostapp.blogpost.entity.Post;
-import com.blogpostapp.blogpost.services.PostServicesImp;
+import com.blogpostapp.blogpost.entity.PostEntity;
+import com.blogpostapp.blogpost.services.PostServiceImp;
 
 import java.util.Optional;
 
@@ -23,29 +23,29 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/posts")
 public class PostRestController {
 
-    private PostServicesImp postServices;
+    private PostServiceImp postServices;
     
 
 
     @Autowired
-    PostRestController(PostServicesImp thePostService) {
+    PostRestController(PostServiceImp thePostService) {
         this.postServices = thePostService;
     }
 
 
 
     @PostMapping("/create-article")
-    public ResponseEntity<Post> uploadPost(
-            @RequestBody Post post,
+    public ResponseEntity<PostEntity> uploadPost(
+            @RequestBody PostEntity post,
             @RequestParam Integer authorId) {
         
-        Post savedPost = postServices.uploadPost(post, authorId);
+        PostEntity savedPost = postServices.uploadPost(post, authorId);
         return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
     }
 
     @GetMapping("/get-article/{id}")
-    public Optional<Post> getPostById(@PathVariable Integer id) {
-        Optional<Post> singlePost = postServices.getPostById(id);
+    public Optional<PostEntity> getPostById(@PathVariable Integer id) {
+        Optional<PostEntity> singlePost = postServices.getPostById(id);
         return singlePost;
     }
     

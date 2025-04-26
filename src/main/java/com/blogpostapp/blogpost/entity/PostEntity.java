@@ -7,7 +7,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "post")
-public class Post {
+public class PostEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,14 +15,16 @@ public class Post {
     
     @ManyToOne
     @JoinColumn(name = "author_id")
-    private User author;
+    private UserEntity author;
     
+    @Column(name = "date")
     private LocalDate date;
     
     @Column(name = "duration_read")
     private String durationRead;
-    
-    @Column(name = "post_img")
+
+    @Lob
+    @Column(name = "post_img",columnDefinition = "BLOB")
     private String postImg;
     
     @Lob
@@ -30,12 +32,12 @@ public class Post {
     private String content;
     
     @ManyToMany(mappedBy = "collaboratedPosts")
-    private Set<User> collaborators = new HashSet<>();
+    private Set<UserEntity> collaborators = new HashSet<>();
 
-    public Post() {
+    public PostEntity() {
     }
 
-    public Post(User author, LocalDate date, String durationRead, String content) {
+    public PostEntity(UserEntity author, LocalDate date, String durationRead, String content) {
         this.author = author;
         this.date = date;
         this.durationRead = durationRead;
@@ -54,7 +56,7 @@ public class Post {
         return author.getId();
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(UserEntity author) {
         this.author = author;
     }
 
@@ -94,7 +96,7 @@ public class Post {
     //     return collaborators;
     // }
 
-    public void setCollaborators(Set<User> collaborators) {
+    public void setCollaborators(Set<UserEntity> collaborators) {
         this.collaborators = collaborators;
     }
 

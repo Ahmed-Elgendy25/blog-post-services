@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "user")
-public class User {
+public class UserEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,10 +19,10 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
     
-    @Column
+    @Column(name = "email")
     private String email;
     
-    @Column
+    @Column(name = "password")
     private String password;
     
     @Column(name = "user_img")
@@ -38,13 +38,13 @@ public class User {
         joinColumns = @JoinColumn(name = "author_id"),
         inverseJoinColumns = @JoinColumn(name = "post_id")
     )
-    private Set<Post> collaboratedPosts = new HashSet<>();
+    private Set<PostEntity> collaboratedPosts = new HashSet<>();
 
 
-    public User() {
+    public UserEntity() {
         
     }
-    public User(String firstName, String lastName, String email, String password, UserType type) {
+    public UserEntity(String firstName, String lastName, String email, String password, UserType type) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -112,11 +112,11 @@ public class User {
         this.type = type;
     }
 
-    public Set<Post> getCollaboratedPosts() {
+    public Set<PostEntity> getCollaboratedPosts() {
         return collaboratedPosts;
     }
 
-    public void setCollaboratedPosts(Set<Post> collaboratedPosts) {
+    public void setCollaboratedPosts(Set<PostEntity> collaboratedPosts) {
         this.collaboratedPosts = collaboratedPosts;
     }
 

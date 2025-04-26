@@ -8,26 +8,26 @@ import org.springframework.stereotype.Service;
 
 import com.blogpostapp.blogpost.dao.PostRepository;
 import com.blogpostapp.blogpost.dao.UserRepository;
-import com.blogpostapp.blogpost.entity.Post;
-import com.blogpostapp.blogpost.entity.User;
+import com.blogpostapp.blogpost.entity.PostEntity;
+import com.blogpostapp.blogpost.entity.UserEntity;
 
 import jakarta.transaction.Transactional;
 
 @Service
-public class PostServicesImp implements PostServices {
+public class PostServiceImp implements PostService {
 
 
     private PostRepository postRepository;
     private UserRepository userRepository;
-   public PostServicesImp(UserRepository theUserRepository,PostRepository thePostRepository) {
+   public PostServiceImp(UserRepository theUserRepository,PostRepository thePostRepository) {
         userRepository=theUserRepository;
         postRepository=thePostRepository;
     }
 
     @Override
-    public Post uploadPost(Post post, Integer authorId) {
+    public PostEntity uploadPost(PostEntity post, Integer authorId) {
         // Fetch the author from database
-        User author = userRepository.findById(authorId)
+        UserEntity author = userRepository.findById(authorId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + authorId));
         
         // Set the author
@@ -43,15 +43,15 @@ public class PostServicesImp implements PostServices {
     }
 
 @Override 
-    public Optional<Post> getPostById(Integer id) {
-        Optional<Post> singlePost=postRepository.findById(id);
+    public Optional<PostEntity> getPostById(Integer id) {
+        Optional<PostEntity> singlePost=postRepository.findById(id);
         return singlePost;
     }
 
 
     @Override
-    public List<Post> getAllPosts() {
-        List<Post> allPosts = postRepository.findAll();
+    public List<PostEntity> getAllPosts() {
+        List<PostEntity> allPosts = postRepository.findAll();
         return allPosts;
     }
 
