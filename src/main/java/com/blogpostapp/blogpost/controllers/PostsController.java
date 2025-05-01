@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/posts")
-public class PostRestController {
+public class PostsController {
 
     private PostServiceImp postServices;
     
 
 
     @Autowired
-    PostRestController(PostServiceImp thePostService) {
+    PostsController(PostServiceImp thePostService) {
         this.postServices = thePostService;
     }
 
