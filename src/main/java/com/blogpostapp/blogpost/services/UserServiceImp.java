@@ -1,5 +1,7 @@
 package com.blogpostapp.blogpost.services;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +21,7 @@ public class UserServiceImp implements UserService{
 
     @Override
     public Boolean userExistByEmail(String email) {
-        UserEntity user = userRepository.findByEmail(email);
+        Optional<UserEntity> user = userRepository.findByEmail(email);
         if(user == null) {
             return false;
         }

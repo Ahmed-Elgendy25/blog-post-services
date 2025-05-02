@@ -9,16 +9,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.blogpostapp.blogpost.dto.AuthResponseDTO;
 import com.blogpostapp.blogpost.dto.LoginUserDTO;
 import com.blogpostapp.blogpost.dto.RegisterUserDTO;
 import com.blogpostapp.blogpost.entity.UserEntity;
-import com.blogpostapp.blogpost.security.JWTGenerator;
+import com.blogpostapp.blogpost.security.JwtUserDetailsService;
+import com.blogpostapp.blogpost.security.TokenManager;
+import com.blogpostapp.blogpost.security.models.JwtRequestModel;
+import com.blogpostapp.blogpost.security.models.JwtResponseModel;
 import com.blogpostapp.blogpost.services.UserServiceImp;
 
 @RestController
@@ -26,15 +32,21 @@ import com.blogpostapp.blogpost.services.UserServiceImp;
 public class AuthController {
 
  private AuthenticationManager authenticationManager;
+
  private UserServiceImp userService;
  private PasswordEncoder passwordEncoder;
- private JWTGenerator jwtGenerator;
- 
- public AuthController(AuthenticationManager authenticationManager, UserServiceImp userService, PasswordEncoder passwordEncoder, JWTGenerator jwtGenerator) {
+
+ private JwtUserDetailsService userDetailsService; 
+
+
+   @Autowired
+   private TokenManager tokenManager;
+   
+ public AuthController(AuthenticationManager authenticationManager, JwtUserDetailsService userDetailsService, PasswordEncoder passwordEncoder, TokenManager tokenManager) {
     this.authenticationManager = authenticationManager;
-    this.userService = userService;
+    this.userDetailsService = userDetailsService;
     this.passwordEncoder = passwordEncoder;
-    this.jwtGenerator = jwtGenerator;
+    this.tokenManager = tokenManager;
 }
 
 @PostMapping("/register")
@@ -55,15 +67,21 @@ public ResponseEntity<String> register(@RequestBody RegisterUserDTO registeredUs
     return ResponseEntity.ok("User registered successfully: "+ savedUser);
 }
 
-@PostMapping("/login")
-public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginUserDTO loginUser) {
-    Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginUser.email(), loginUser.password()));
-    
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    String token = jwtGenerator.generateToken(authentication);
-    return new ResponseEntity<>(new AuthResponseDTO(token), HttpStatus.OK);
-
-}
+ @PostMapping("/login")
+   public ResponseEntity<JwtResponseModel> createToken(@RequestBody JwtRequestModel
+      request) throws Exception {
+      try {
+         authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+      } catch (DisabledException e) {
+         throw new Exception("USER_DISABLED", e);
+      } catch (BadCredentialsException e) {
+         throw new Exception("INVALID_CREDENTIALS", e);
+      }
+      final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+      final String jwtToken = tokenManager.generateJwtToken(userDetails);
+      return ResponseEntity.ok(new JwtResponseModel(jwtToken));
+   }
     
 }
 

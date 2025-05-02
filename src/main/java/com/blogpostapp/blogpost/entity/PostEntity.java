@@ -31,7 +31,7 @@ public class PostEntity {
     @Column(name = "content")
     private String content;
     
-    @ManyToMany(mappedBy = "collaboratedPosts")
+    @ManyToMany(fetch = FetchType.LAZY,mappedBy = "collaboratedPosts")
     private Set<UserEntity> collaborators = new HashSet<>();
 
     public PostEntity() {

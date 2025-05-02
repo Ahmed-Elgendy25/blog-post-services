@@ -1,14 +1,19 @@
 package com.blogpostapp.blogpost.entity;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
-public class UserEntity {
+public class UserEntity implements UserDetails {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -131,7 +136,14 @@ public class UserEntity {
         return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
                 + ", password=" + password + ", type=" + type + ", collaboratedPosts=" + collaboratedPosts + "]";
     }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+      return List.of( new SimpleGrantedAuthority(type.toString()));
+    }
+    @Override
+    public String getUsername() {
+        return email;
+    }
     
-    // Constructors, getters, setters
 }
 
