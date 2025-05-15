@@ -5,61 +5,65 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.blogpostapp.blogpost.dao.PostRepository;
 import com.blogpostapp.blogpost.dao.UserRepository;
+import com.blogpostapp.blogpost.dto.PostDTO;
 import com.blogpostapp.blogpost.entity.PostEntity;
 import com.blogpostapp.blogpost.entity.UserEntity;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class PostServiceImp implements PostService {
 
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
-    private PostRepository postRepository;
-    private UserRepository userRepository;
-   public PostServiceImp(UserRepository theUserRepository,PostRepository thePostRepository) {
-        userRepository=theUserRepository;
-        postRepository=thePostRepository;
+    public PostServiceImp(UserRepository userRepository, PostRepository postRepository) {
+        this.userRepository = userRepository;
+        this.postRepository = postRepository;
     }
 
-    @Override
-    public PostEntity uploadPost(PostEntity post, Integer authorId) {
-        // Fetch the author from database
-        UserEntity author = userRepository.findById(authorId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + authorId));
-        
-        // Set the author
-        post.setAuthor(author);
-        
-        // Set current date if not provided
-        if(post.getDate() == null) {
-            post.setDate(LocalDate.now());
-        }
-        
-        // Save the post
-        return postRepository.save(post);
-    }
-
-@Override 
+    @Override 
     public Optional<PostEntity> getPostById(Integer id) {
-        Optional<PostEntity> singlePost=postRepository.findById(id);
-        return singlePost;
+        return postRepository.findById(id);
     }
-
 
     @Override
     public List<PostEntity> getAllPosts() {
-        List<PostEntity> allPosts = postRepository.findAll();
-        return allPosts;
+        return postRepository.findAll();
     }
 
     @Transactional
     @Override
     public void deletePost(Integer id) {
-      // TODO later
+        postRepository.deleteById(id);
     }
 
+    @Override
+    @Transactional
+    public PostEntity uploadPost(PostEntity postRequest) {
+        if (postRequest == null) {
+            throw new IllegalArgumentException("Post request cannot be null");
+        }
 
+        if (postRequest.getContent() == null || postRequest.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("Post content cannot be empty");
+        }
+
+        // Get the author
+        UserEntity author = userRepository.findById(postRequest.getAuthorId())
+            .orElseThrow(() -> new IllegalArgumentException("Author not found with ID: " + postRequest.getAuthorId()));
+
+        // Create new post
+        PostEntity post = new PostEntity();
+        post.setContent(postRequest.getContent());
+        post.setAuthor(author);
+        post.setDate(LocalDate.now());
+        post.setDurationRead(postRequest.getDurationRead());
+        post.setPostImg(postRequest.getPostImg());
+
+        // Save and return
+        return postRepository.save(post);
+    }
 }

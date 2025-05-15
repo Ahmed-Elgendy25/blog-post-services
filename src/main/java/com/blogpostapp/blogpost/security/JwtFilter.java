@@ -28,6 +28,7 @@ public class JwtFilter extends OncePerRequestFilter {
       String tokenHeader = request.getHeader("Authorization");
       String username = null;
       String token = null;
+      String roles = null;
       // Check if Authorization header exists
       if (tokenHeader != null) {
          // If header starts with Bearer, extract token after it
@@ -40,6 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
          
          try {
             username = tokenManager.getUsernameFromToken(token);
+            roles = tokenManager.getRoleFromToken(token);
          } catch (IllegalArgumentException e) {
             System.out.println("Unable to get JWT Token");
          } catch (ExpiredJwtException e) {

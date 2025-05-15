@@ -4,9 +4,11 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -28,13 +30,18 @@ public class TokenManager {
    // using username, issue date of token and the expiration date of the token.
    public String generateJwtToken(UserDetails userDetails) { 
       Map<String, Object> claims = new HashMap<>(); 
+      Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+      System.out.println("Storing authorities in token: " + authorities);
+      claims.put("roles", authorities.stream()
+         .map(GrantedAuthority::getAuthority)
+         .toList());
       return Jwts
          .builder()
-         .setClaims(claims)  // set the claims
-         .setSubject(userDetails.getUsername())  // set the username as subject in payload
+         .setClaims(claims)
+         .setSubject(userDetails.getUsername())
          .setIssuedAt(new Date(System.currentTimeMillis()))
          .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY * 1000))
-         .signWith(getKey(), SignatureAlgorithm.HS256)  // signature part
+         .signWith(getKey(), SignatureAlgorithm.HS256)
          .compact();
    }
 
@@ -61,7 +68,15 @@ public class TokenManager {
          .parseClaimsJws(token).getBody(); 
       return claims.getSubject(); 
    }
-   
+
+   public String getRoleFromToken(String token) {
+      final Claims claims = Jwts
+         .parserBuilder()
+         .setSigningKey(getKey())
+         .build()
+         .parseClaimsJws(token).getBody(); 
+      return claims.get("roles").toString();
+   }
    // create a signing key based on secret
    private Key getKey() {
       byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);		

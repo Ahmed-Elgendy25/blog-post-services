@@ -1,5 +1,7 @@
 package com.blogpostapp.blogpost.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +24,18 @@ public class UserServiceImp implements UserService{
     @Override
     public Boolean userExistByEmail(String email) {
         Optional<UserEntity> user = userRepository.findByEmail(email);
-        if(user == null) {
-            return false;
-        }
-        return true;
+        return user.isPresent();
     }
     
     @Transactional
     @Override
     public UserEntity registerUser(UserEntity user) {
-        userRepository.save(user);
+      List<UserEntity.UserType> type = new ArrayList<UserEntity.UserType>();
+      type.addAll(user.getType());
+      user.setType(type);
+      
+      userRepository.save(user);
+
         return user;
     }
 

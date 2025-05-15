@@ -5,8 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,8 +35,11 @@ public class WebSecurityConfig {
    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception { 
       return http
          .csrf(AbstractHttpConfigurer::disable)
-         .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
-         .anyRequest().authenticated())
+         .authorizeHttpRequests(
+            request -> request.requestMatchers("/api/auth/**","/api/posts/**").permitAll()
+                        .anyRequest().authenticated()
+            
+         )
          // Send a 401 error response if user is not authentic.		 
          .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
          // no session management
@@ -52,7 +54,7 @@ public class WebSecurityConfig {
    protected PasswordEncoder passwordEncoder() { 
       return new BCryptPasswordEncoder(); 
    }
-   @Bean
+      @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration builder) throws Exception {
         return builder.getAuthenticationManager();
     }

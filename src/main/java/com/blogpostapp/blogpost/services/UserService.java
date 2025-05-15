@@ -1,6 +1,5 @@
 package com.blogpostapp.blogpost.services;
 
-import com.blogpostapp.blogpost.dto.LoginUserDTO;
 import com.blogpostapp.blogpost.entity.UserEntity;
 
 public interface UserService {

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,14 +35,14 @@ public class UserEntity implements UserDetails {
     @Column(name = "user_img")
     private String userImg;
     
-    @ElementCollection
-    @CollectionTable(
-        name = "user_type",
-        joinColumns = @JoinColumn(name = "user_id")
-    )
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    private List<UserType> type;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "user_types",
+        joinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<UserType> type = new ArrayList<>();
     
     @ManyToMany
     @JoinTable(
@@ -145,5 +146,24 @@ public class UserEntity implements UserDetails {
         return email;
     }
     
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
 

@@ -13,8 +13,8 @@ public class PostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     
-    @ManyToOne
-    @JoinColumn(name = "author_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "author_id", nullable = false)
     private UserEntity author;
     
     @Column(name = "date")
@@ -31,7 +31,7 @@ public class PostEntity {
     @Column(name = "content")
     private String content;
     
-    @ManyToMany(fetch = FetchType.LAZY,mappedBy = "collaboratedPosts")
+    @ManyToMany(mappedBy = "collaboratedPosts")
     private Set<UserEntity> collaborators = new HashSet<>();
 
     public PostEntity() {
@@ -53,7 +53,7 @@ public class PostEntity {
     }
 
     public Integer getAuthorId() {
-        return author.getId();
+        return author != null ? author.getId() : null;
     }
 
     public void setAuthor(UserEntity author) {

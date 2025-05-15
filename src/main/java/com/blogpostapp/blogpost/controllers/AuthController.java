@@ -17,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.blogpostapp.blogpost.dto.AuthResponseDTO;
 import com.blogpostapp.blogpost.dto.LoginUserDTO;
 import com.blogpostapp.blogpost.dto.RegisterUserDTO;
 import com.blogpostapp.blogpost.entity.UserEntity;
@@ -33,14 +32,14 @@ public class AuthController {
 
  private AuthenticationManager authenticationManager;
 
+ @Autowired
  private UserServiceImp userService;
+ @Autowired
  private PasswordEncoder passwordEncoder;
-
+ @Autowired
  private JwtUserDetailsService userDetailsService; 
-
-
-   @Autowired
-   private TokenManager tokenManager;
+ @Autowired
+ private TokenManager tokenManager;
    
  public AuthController(AuthenticationManager authenticationManager, JwtUserDetailsService userDetailsService, PasswordEncoder passwordEncoder, TokenManager tokenManager) {
     this.authenticationManager = authenticationManager;
@@ -80,7 +79,8 @@ public ResponseEntity<String> register(@RequestBody RegisterUserDTO registeredUs
       }
       final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
       final String jwtToken = tokenManager.generateJwtToken(userDetails);
-      return ResponseEntity.ok(new JwtResponseModel(jwtToken));
+      
+      return ResponseEntity.ok(new JwtResponseModel(jwtToken, userDetails.getAuthorities().toArray()[0].toString()));
    }
     
 }
