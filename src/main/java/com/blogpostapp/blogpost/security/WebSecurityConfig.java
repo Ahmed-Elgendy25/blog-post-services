@@ -36,8 +36,9 @@ public class WebSecurityConfig {
       return http
          .csrf(AbstractHttpConfigurer::disable)
          .authorizeHttpRequests(
-            request -> request.requestMatchers("/api/auth/**","/api/posts/**").permitAll()
-                        .anyRequest().authenticated()
+            request -> request.requestMatchers("/api/auth/**","api/posts/paginated").permitAll()
+                  .requestMatchers("/api/posts/**").hasAuthority("author")
+                  .anyRequest().authenticated()
             
          )
          // Send a 401 error response if user is not authentic.		 
@@ -55,7 +56,7 @@ public class WebSecurityConfig {
       return new BCryptPasswordEncoder(); 
    }
       @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration builder) throws Exception {
-        return builder.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }

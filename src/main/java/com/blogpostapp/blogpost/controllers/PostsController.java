@@ -8,14 +8,18 @@ import com.blogpostapp.blogpost.entity.PostEntity;
 import com.blogpostapp.blogpost.entity.UserEntity;
 import com.blogpostapp.blogpost.services.PostServiceImp;
 
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @RestController
@@ -36,7 +41,24 @@ public class PostsController {
         this.postServices = postService;
     }
 
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<PostEntity>> getPaginatedPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "date") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+        
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ? 
+            Sort.Direction.ASC : Sort.Direction.DESC;
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+        Page<PostEntity> posts = postServices.getPaginatedPosts(pageable);
+        
+        return ResponseEntity.ok(posts);
+    }
+
     @PostMapping("/create-article")
+    @PreAuthorize("hasAuthority('author')")
     public ResponseEntity<?> uploadPost(@RequestBody PostDTO post) {
         try {
             if (post == null || post.authorId() == null) {

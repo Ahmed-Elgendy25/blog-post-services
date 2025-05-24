@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -139,8 +140,11 @@ public class UserEntity implements UserDetails {
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-      return List.of( new SimpleGrantedAuthority(type.toString()));
+        return type.stream()
+            .map(role -> new SimpleGrantedAuthority(role.name()))
+            .collect(Collectors.toList());
     }
+    
     @Override
     public String getUsername() {
         return email;

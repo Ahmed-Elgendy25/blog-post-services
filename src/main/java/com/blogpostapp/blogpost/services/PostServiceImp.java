@@ -4,12 +4,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.blogpostapp.blogpost.dao.PostRepository;
 import com.blogpostapp.blogpost.dao.UserRepository;
-import com.blogpostapp.blogpost.dto.PostDTO;
 import com.blogpostapp.blogpost.entity.PostEntity;
 import com.blogpostapp.blogpost.entity.UserEntity;
 
@@ -19,6 +21,7 @@ public class PostServiceImp implements PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
+    @Autowired
     public PostServiceImp(UserRepository userRepository, PostRepository postRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
@@ -32,6 +35,11 @@ public class PostServiceImp implements PostService {
     @Override
     public List<PostEntity> getAllPosts() {
         return postRepository.findAll();
+    }
+
+    @Override
+    public Page<PostEntity> getPaginatedPosts(Pageable pageable) {
+        return postRepository.findAll(pageable);
     }
 
     @Transactional
