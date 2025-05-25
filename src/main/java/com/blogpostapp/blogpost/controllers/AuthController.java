@@ -5,6 +5,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +84,12 @@ public ResponseEntity<String> register(@RequestBody RegisterUserDTO registeredUs
       final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
       final String jwtToken = tokenManager.generateJwtToken(userDetails);
       
-      return ResponseEntity.ok(new JwtResponseModel(jwtToken, userDetails.getAuthorities().toArray()[0].toString()));
+      // Collect all roles from authorities
+      List<String> roles = userDetails.getAuthorities().stream()
+          .map(authority -> authority.getAuthority())
+          .collect(Collectors.toList());
+      
+      return ResponseEntity.ok(new JwtResponseModel(jwtToken, roles));
    }
     
 }

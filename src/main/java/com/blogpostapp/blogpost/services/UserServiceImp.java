@@ -30,12 +30,13 @@ public class UserServiceImp implements UserService{
     @Transactional
     @Override
     public UserEntity registerUser(UserEntity user) {
-      List<UserEntity.UserType> type = new ArrayList<UserEntity.UserType>();
-      type.addAll(user.getType());
-      user.setType(type);
-      
-      userRepository.save(user);
-
+        List<UserEntity.UserType> type = new ArrayList<>();
+        if (user.getType() != null) {
+            type.addAll(user.getType());
+        }
+        user.setType(type);
+        
+        userRepository.save(user);
         return user;
     }
 

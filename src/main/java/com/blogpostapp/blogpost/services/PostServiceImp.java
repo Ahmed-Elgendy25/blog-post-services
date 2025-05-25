@@ -71,7 +71,18 @@ public class PostServiceImp implements PostService {
         post.setDurationRead(postRequest.getDurationRead());
         post.setPostImg(postRequest.getPostImg());
 
-        // Save and return
-        return postRepository.save(post);
+        // Save the post first to generate an ID "increment id"
+        PostEntity savedPost = postRepository.save(post);
+        
+        // Add the author to the collaborators list
+        author.getCollaboratedPosts().add(savedPost);
+
+
+
+        // Save the user to generate an ID "increment id"
+
+        userRepository.save(author);
+
+        return savedPost;
     }
 }
