@@ -12,7 +12,7 @@ public class PostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+    
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "author_id", nullable = false)
     private UserEntity author;
@@ -23,10 +23,12 @@ public class PostEntity {
     @Column(name = "duration_read")
     private String durationRead;
 
-    @Column(name = "post_img")
+    @Lob
+    @Column(name = "post_img",columnDefinition = "BLOB")
     private String postImg;
     
-    @Column(name = "content", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "content")
     private String content;
     
     @ManyToMany(mappedBy = "collaboratedPosts")
@@ -105,3 +107,4 @@ public class PostEntity {
     }
     
 }
+
