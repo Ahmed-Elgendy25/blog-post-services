@@ -13,26 +13,28 @@ public class PostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private UserEntity author;
     
     @Column(name = "date")
     private LocalDate date;
     
-    @Column(name = "duration_read")
+    @Column(name = "duration_read",columnDefinition = "VARCHAR")
     private String durationRead;
+    
+    @Column(name = "title",columnDefinition = "TEXT")
+    private String title;
 
-    @Lob
-    @Column(name = "post_img",columnDefinition = "BLOB")
+  
+    @Column(name = "banner",columnDefinition = "TEXT")
     private String postImg;
     
-    @Lob
-    @Column(name = "content")
+    @Column(name = "content",columnDefinition = "TEXT")
     private String content;
     
-    @ManyToMany(mappedBy = "collaboratedPosts")
-    private Set<UserEntity> collaborators = new HashSet<>();
+    @ManyToMany(mappedBy = "collaboratingPosts")
+    private Set<UserEntity> collaboratingUsers  = new HashSet<>();
 
     public PostEntity() {
     }
@@ -97,13 +99,29 @@ public class PostEntity {
     // }
 
     public void setCollaborators(Set<UserEntity> collaborators) {
-        this.collaborators = collaborators;
+        this.collaboratingUsers = collaborators;
     }
 
     @Override
     public String toString() {
-        return "Post [id=" + id + ", author=" + author + ", date=" + date + ", durationRead=" + durationRead
+        return "Post [id=" + id + ", authorName=" + author.getFirstName() + " " + author.getLastName() + ", date=" + date + ", durationRead=" + durationRead
                 + ", content=" + content + "]";
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public UserEntity getAuthor() {
+        return author;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Set<UserEntity> getCollaborators() {
+        return collaboratingUsers ;
     }
     
 }

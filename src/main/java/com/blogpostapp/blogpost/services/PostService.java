@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.blogpostapp.blogpost.entity.PostEntity;
+import com.blogpostapp.blogpost.entity.UserEntity;
 
 public interface PostService {
 
@@ -15,4 +16,5 @@ public interface PostService {
     public List<PostEntity> getAllPosts();
     public Page<PostEntity> getPaginatedPosts(Pageable pageable);
     public void deletePost(Integer id);
+    public boolean existsByContent(String content);
 }

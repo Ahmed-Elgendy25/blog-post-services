@@ -3,19 +3,23 @@ package com.blogpostapp.blogpost.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.blogpostapp.blogpost.dao.UserRepository;
 import com.blogpostapp.blogpost.dto.PostDTO;
+import com.blogpostapp.blogpost.dto.PostSummaryDTO;
 import com.blogpostapp.blogpost.entity.PostEntity;
 import com.blogpostapp.blogpost.entity.UserEntity;
 import com.blogpostapp.blogpost.services.PostServiceImp;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,27 +40,61 @@ public class PostsController {
 
     private final PostServiceImp postServices;
 
+
     @Autowired
     public PostsController(PostServiceImp postService) {
         this.postServices = postService;
     }
 
     @GetMapping("/paginated")
-    public ResponseEntity<Page<PostEntity>> getPaginatedPosts(
+    public ResponseEntity<?> getPaginatedPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "date") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
-        
+    
         Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ? 
             Sort.Direction.ASC : Sort.Direction.DESC;
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
-        Page<PostEntity> posts = postServices.getPaginatedPosts(pageable);
-        
-        return ResponseEntity.ok(posts);
+    
+        // Filter non-collaborated posts first
+        List<PostEntity> allNonCollaboratedPosts = postServices.getAllPosts().stream()
+            .filter(post -> post.getCollaborators().isEmpty())
+            .sorted((a, b) -> {
+                if (sortBy.equals("date")) {
+                    return sortDirection.isAscending() ? 
+                        a.getDate().compareTo(b.getDate()) : 
+                        b.getDate().compareTo(a.getDate());
+                }
+                return 0; 
+            })
+            .collect(Collectors.toList());
+    
+        int start = Math.min(page * size, allNonCollaboratedPosts.size());
+        int end = Math.min(start + size, allNonCollaboratedPosts.size());
+    
+        List<PostSummaryDTO> paginatedAndMapped = allNonCollaboratedPosts.subList(start, end).stream()
+            .map(post -> new PostSummaryDTO(
+                post.getId(),
+                post.getTitle(),
+                post.getDate(),
+                post.getDurationRead(),
+                post.getAuthorId(),
+                post.getAuthor() != null ? 
+                    post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName() : 
+                    null,
+                post.getPostImg()
+            ))
+            .collect(Collectors.toList());
+    
+        Page<PostSummaryDTO> pageResponse = new PageImpl<>(
+            paginatedAndMapped,
+            PageRequest.of(page, size, Sort.by(sortDirection, sortBy)),
+            allNonCollaboratedPosts.size()
+        );
+    
+        return ResponseEntity.ok(pageResponse);
     }
-
+    
     @PostMapping("/create-article")
     @PreAuthorize("hasAuthority('author')")
     public ResponseEntity<?> uploadPost(@RequestBody PostDTO post) {
@@ -64,23 +102,28 @@ public class PostsController {
             if (post == null || post.authorId() == null) {
                 return ResponseEntity.badRequest().body("Post and author ID are required");
             }
-
+           
+            // Check if a post with the same content already exists
+            if (postServices.existsByContent(post.content())) {
+                return ResponseEntity.badRequest().body("A post with this content already exists");
+            }
+            
             // Create post entity from DTO
             PostEntity postEntity = new PostEntity();
+            //Create author entity 
+            UserEntity author = new UserEntity();
             postEntity.setContent(post.content());
+            postEntity.setTitle(post.title());
+            postEntity.setDurationRead(post.durationRead());
             
             // Create a temporary author reference
-            UserEntity author = new UserEntity();
             author.setId(post.authorId());
             postEntity.setAuthor(author);
             
-            // Set optional fields
-            if (post.durationRead() != null) {
-                postEntity.setDurationRead(post.durationRead());
-            }
-            if (post.postImg() != null) {
+          
+      
                 postEntity.setPostImg(post.postImg());
-            }
+          
 
             // Save the post
             PostEntity savedPost = postServices.uploadPost(postEntity);
@@ -94,18 +137,25 @@ public class PostsController {
         }
     }
 
-    @GetMapping("/get-article/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getPostById(@PathVariable Integer id) {
         try {
             Optional<PostEntity> post = postServices.getPostById(id);
-            return post.map(p -> ResponseEntity.ok().body(p))
-                      .orElse(ResponseEntity.notFound().build());
+            return post.map(p -> ResponseEntity.ok().body(
+                new PostDTO(
+                    p.getContent(),
+                    p.getAuthor().getId(),  
+                    p.getDurationRead(),
+                    p.getPostImg(),
+                    p.getTitle(),
+                    p.getDate()
+                )
+            )).orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                .body("Error retrieving post: " + e.getMessage());
         }
     }
-
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -113,7 +163,7 @@ public class PostsController {
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            errors.put(fieldName,   errorMessage);
         });
         return errors;
     }

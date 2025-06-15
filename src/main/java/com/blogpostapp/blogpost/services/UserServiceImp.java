@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.blogpostapp.blogpost.dao.UserRepository;
 import com.blogpostapp.blogpost.dto.LoginUserDTO;
+import com.blogpostapp.blogpost.dto.UserDTO;
 import com.blogpostapp.blogpost.entity.UserEntity;
 
 @Service
@@ -37,6 +38,11 @@ public class UserServiceImp implements UserService{
       userRepository.save(user);
 
         return user;
+    }
+
+    @Override
+    public Optional<UserDTO> getUserById(Integer id) {
+        return userRepository.findById(id).map(user -> new UserDTO(user.getEmail(), user.getFirstName(), user.getLastName(), user.getUserImg()));
     }
 
 

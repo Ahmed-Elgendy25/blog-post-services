@@ -49,6 +49,11 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
+    public boolean existsByContent(String content) {
+        return postRepository.findByContent(content).isPresent();
+    }
+
+    @Override
     @Transactional
     public PostEntity uploadPost(PostEntity postRequest) {
         if (postRequest == null) {
@@ -67,6 +72,7 @@ public class PostServiceImp implements PostService {
         PostEntity post = new PostEntity();
         post.setContent(postRequest.getContent());
         post.setAuthor(author);
+        post.setTitle(postRequest.getTitle());
         post.setDate(LocalDate.now());
         post.setDurationRead(postRequest.getDurationRead());
         post.setPostImg(postRequest.getPostImg());
@@ -74,4 +80,7 @@ public class PostServiceImp implements PostService {
         // Save and return
         return postRepository.save(post);
     }
+
+
+
 }

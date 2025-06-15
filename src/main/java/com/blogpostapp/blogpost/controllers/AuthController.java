@@ -26,62 +26,83 @@ import com.blogpostapp.blogpost.security.models.JwtRequestModel;
 import com.blogpostapp.blogpost.security.models.JwtResponseModel;
 import com.blogpostapp.blogpost.services.UserServiceImp;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
- private AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
- @Autowired
- private UserServiceImp userService;
- @Autowired
- private PasswordEncoder passwordEncoder;
- @Autowired
- private JwtUserDetailsService userDetailsService; 
- @Autowired
- private TokenManager tokenManager;
+    @Autowired
+    private UserServiceImp userService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUserDetailsService userDetailsService; 
+    @Autowired
+    private TokenManager tokenManager;
    
- public AuthController(AuthenticationManager authenticationManager, JwtUserDetailsService userDetailsService, PasswordEncoder passwordEncoder, TokenManager tokenManager) {
-    this.authenticationManager = authenticationManager;
-    this.userDetailsService = userDetailsService;
-    this.passwordEncoder = passwordEncoder;
-    this.tokenManager = tokenManager;
-}
-
-@PostMapping("/register")
-public ResponseEntity<String> register(@RequestBody RegisterUserDTO registeredUser) {
-
-    if(userService.userExistByEmail(registeredUser.email())) {
-        return ResponseEntity.badRequest().body("User already exists");
+    public AuthController(AuthenticationManager authenticationManager, JwtUserDetailsService userDetailsService, PasswordEncoder passwordEncoder, TokenManager tokenManager) {
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenManager = tokenManager;
     }
-    UserEntity newUser= new UserEntity();
-    newUser.setEmail(registeredUser.email());
-    newUser.setFirstName(registeredUser.firstName());
-    newUser.setLastName(registeredUser.lastName());
-    newUser.setUserImg(registeredUser.userImg());
-    newUser.setType(registeredUser.type());
-    newUser.setPassword(passwordEncoder.encode(registeredUser.password()));
-    
-    UserEntity savedUser= userService.registerUser(newUser);
-    return ResponseEntity.ok("User registered successfully: "+ savedUser);
-}
 
- @PostMapping("/login")
-   public ResponseEntity<JwtResponseModel> createToken(@RequestBody JwtRequestModel
-      request) throws Exception {
-      try {
-         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-      } catch (DisabledException e) {
-         throw new Exception("USER_DISABLED", e);
-      } catch (BadCredentialsException e) {
-         throw new Exception("INVALID_CREDENTIALS", e);
-      }
-      final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-      final String jwtToken = tokenManager.generateJwtToken(userDetails);
-      
-      return ResponseEntity.ok(new JwtResponseModel(jwtToken, userDetails.getAuthorities().toArray()[0].toString()));
-   }
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody RegisterUserDTO registeredUser) {
+
+        if(userService.userExistByEmail(registeredUser.email())) {
+            return ResponseEntity.badRequest().body("User already exists");
+        }
+        UserEntity newUser= new UserEntity();
+        newUser.setEmail(registeredUser.email());
+        newUser.setFirstName(registeredUser.firstName());
+        newUser.setLastName(registeredUser.lastName());
+        newUser.setUserImg(registeredUser.userImg());
+        newUser.setType(registeredUser.type());
+        newUser.setPassword(passwordEncoder.encode(registeredUser.password()));
+        
+        UserEntity savedUser= userService.registerUser(newUser);
+        return ResponseEntity.ok("User registered successfully: "+ savedUser);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<JwtResponseModel> createToken(@RequestBody JwtRequestModel
+        request) throws Exception {
+        try {
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        } catch (DisabledException e) {
+            throw new Exception("USER_DISABLED", e);
+        } catch (BadCredentialsException e) {
+            throw new Exception("INVALID_CREDENTIALS", e);
+        }
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        final String jwtToken = tokenManager.generateJwtToken(userDetails);
+        
+        // Convert authorities to a list of role strings
+        List<String> roles = userDetails.getAuthorities().stream()
+            .map(authority -> authority.getAuthority())
+            .collect(Collectors.toList());
+        
+        // Get user ID from UserDetails
+        Integer userId = null;
+        if (userDetails instanceof UserEntity) {
+            userId = ((UserEntity) userDetails).getId();
+        }
+        
+        return ResponseEntity.ok(new JwtResponseModel(jwtToken, roles, userId));
+    }
+    
+
+ 
     
 }
 

@@ -51,7 +51,7 @@ public class UserEntity implements UserDetails {
         joinColumns = @JoinColumn(name = "author_id"),
         inverseJoinColumns = @JoinColumn(name = "post_id")
     )
-    private Set<PostEntity> collaboratedPosts = new HashSet<>();
+    private Set<PostEntity> collaboratingPosts = new HashSet<>();
 
     public enum UserType {
         user, author
@@ -126,17 +126,18 @@ public class UserEntity implements UserDetails {
     }
 
     public Set<PostEntity> getCollaboratedPosts() {
-        return collaboratedPosts;
+        return collaboratingPosts ;
     }
 
     public void setCollaboratedPosts(Set<PostEntity> collaboratedPosts) {
-        this.collaboratedPosts = collaboratedPosts;
+        this.collaboratingPosts  = collaboratedPosts;
     }
 
     @Override
     public String toString() {
         return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
-                + ", password=" + password + ", type=" + type + ", collaboratedPosts=" + collaboratedPosts + "]";
+                + ", password=" + password + ", type=" + type +     
+                "]";
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
