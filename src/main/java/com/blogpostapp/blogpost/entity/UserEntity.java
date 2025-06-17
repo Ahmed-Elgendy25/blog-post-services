@@ -35,6 +35,13 @@ public class UserEntity implements UserDetails {
     
     @Column(name = "user_img")
     private String userImg;
+
+    @Column(name = "linkedin_profile")
+    private String linkedInProfile;
+    @Column(name = "twitter_profile")
+    private String twitterProfile;
+    @Column(name = "instagram_profile")
+    private String instagramProfile;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
@@ -169,6 +176,36 @@ public class UserEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+
+    public String getLinkedInProfile() {
+        return linkedInProfile;
+    }
+    public String getTwitterProfile() {
+        return twitterProfile;
+    }
+    public String getInstagramProfile() {
+        return instagramProfile;
+    }
+    
+    public void setLinkedInProfile(String linkedInProfile) {
+        this.linkedInProfile = linkedInProfile;
+    }
+
+    public void setTwitterProfile(String twitterProfile) {
+        this.twitterProfile = twitterProfile;
+    }
+
+    public void setInstagramProfile(String instagramProfile) {
+        this.instagramProfile = instagramProfile;
+    }
+
+    public void setCollaboratingPosts(Set<PostEntity> collaboratingPosts) {
+        this.collaboratingPosts = collaboratingPosts;
+    }
+    public Set<PostEntity> getCollaboratingPosts() {
+        return collaboratingPosts;
     }
 }
 
