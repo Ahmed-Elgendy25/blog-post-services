@@ -73,6 +73,7 @@ public class PostServiceImp implements PostService {
         post.setContent(postRequest.getContent());
         post.setAuthor(author);
         post.setTitle(postRequest.getTitle());
+        post.setSubTitle(postRequest.getSubTitle());
         post.setDate(LocalDate.now());
         post.setDurationRead(postRequest.getDurationRead());
         post.setPostImg(postRequest.getPostImg());

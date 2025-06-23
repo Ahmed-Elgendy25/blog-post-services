@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.blogpostapp.blogpost.entity.PostEntity;
-import com.blogpostapp.blogpost.entity.UserEntity;
 
 public interface PostService {
 

@@ -3,7 +3,6 @@ package com.blogpostapp.blogpost.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.blogpostapp.blogpost.dao.UserRepository;
 import com.blogpostapp.blogpost.dto.PostDTO;
 import com.blogpostapp.blogpost.dto.PostSummaryDTO;
 import com.blogpostapp.blogpost.entity.PostEntity;
@@ -101,6 +100,7 @@ public class PostsController {
         try {
             if (post == null || post.authorId() == null) {
                 return ResponseEntity.badRequest().body("Post and author ID are required");
+                
             }
            
             // Check if a post with the same content already exists
@@ -110,24 +110,32 @@ public class PostsController {
             
             // Create post entity from DTO
             PostEntity postEntity = new PostEntity();
-            //Create author entity 
-            UserEntity author = new UserEntity();
             postEntity.setContent(post.content());
             postEntity.setTitle(post.title());
+            postEntity.setSubTitle(post.subTitle());
             postEntity.setDurationRead(post.durationRead());
-            
-            // Create a temporary author reference
+            postEntity.setPostImg(post.postImg());
+
+            // Create author entity 
+            UserEntity author = new UserEntity();
             author.setId(post.authorId());
             postEntity.setAuthor(author);
-            
-          
-      
-                postEntity.setPostImg(post.postImg());
-          
 
             // Save the post
             PostEntity savedPost = postServices.uploadPost(postEntity);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedPost);
+            
+            // Convert saved entity to DTO for response
+            PostDTO responseDto = new PostDTO(
+                savedPost.getContent(),
+                savedPost.getAuthor().getId(),
+                savedPost.getDurationRead(),
+                savedPost.getPostImg(),
+                savedPost.getTitle(),
+                savedPost.getSubTitle(),
+                savedPost.getDate()
+            );
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
@@ -148,6 +156,7 @@ public class PostsController {
                     p.getDurationRead(),
                     p.getPostImg(),
                     p.getTitle(),
+                    p.getSubTitle(),
                     p.getDate()
                 )
             )).orElse(ResponseEntity.notFound().build());

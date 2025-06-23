@@ -25,7 +25,8 @@ public class PostEntity {
     
     @Column(name = "title",columnDefinition = "TEXT")
     private String title;
-
+    @Column(name="sub_title",columnDefinition = "TEXT")
+    private String subTitle;
   
     @Column(name = "banner",columnDefinition = "TEXT")
     private String postImg;
@@ -122,6 +123,22 @@ public class PostEntity {
 
     public Set<UserEntity> getCollaborators() {
         return collaboratingUsers ;
+    }
+
+    public String getSubTitle() {
+        return subTitle;
+    }
+
+    public void setSubTitle(String subTitle) {
+        this.subTitle = subTitle;
+    }
+
+    public Set<UserEntity> getCollaboratingUsers() {
+        return collaboratingUsers;
+    }
+
+    public void setCollaboratingUsers(Set<UserEntity> collaboratingUsers) {
+        this.collaboratingUsers = collaboratingUsers;
     }
     
 }
