@@ -13,6 +13,9 @@ import java.util.Optional;
 @Repository
 public interface PostRepository extends JpaRepository<PostEntity, Integer> {
     
+    @Query("SELECT COUNT(p) > 0 FROM PostEntity p WHERE p.content = :content")
+    boolean existsByContent(@Param("content") String content);
+    
     @Query("FROM PostEntity WHERE content = :content")
     Optional<PostEntity> findByContent(@Param("content") String content);
 }

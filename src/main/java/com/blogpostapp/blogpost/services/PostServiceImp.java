@@ -50,7 +50,7 @@ public class PostServiceImp implements PostService {
 
     @Override
     public boolean existsByContent(String content) {
-        return postRepository.findByContent(content).isPresent();
+        return postRepository.existsByContent(content);
     }
 
     @Override

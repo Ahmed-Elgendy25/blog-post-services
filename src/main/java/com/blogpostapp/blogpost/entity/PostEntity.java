@@ -34,7 +34,7 @@ public class PostEntity {
     @Column(name = "content",columnDefinition = "TEXT")
     private String content;
     
-    @ManyToMany(mappedBy = "collaboratingPosts")
+    @ManyToMany
     private Set<UserEntity> collaboratingUsers  = new HashSet<>();
 
     public PostEntity() {
@@ -95,9 +95,6 @@ public class PostEntity {
         this.content = content;
     }
 
-    // public Set<User> getCollaborators() {
-    //     return collaborators;
-    // }
 
     public void setCollaborators(Set<UserEntity> collaborators) {
         this.collaboratingUsers = collaborators;
@@ -131,10 +128,6 @@ public class PostEntity {
 
     public void setSubTitle(String subTitle) {
         this.subTitle = subTitle;
-    }
-
-    public Set<UserEntity> getCollaboratingUsers() {
-        return collaboratingUsers;
     }
 
     public void setCollaboratingUsers(Set<UserEntity> collaboratingUsers) {

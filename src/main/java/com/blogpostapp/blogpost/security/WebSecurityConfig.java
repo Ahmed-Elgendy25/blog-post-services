@@ -26,8 +26,6 @@ public class WebSecurityConfig {
    private JwtAuthenticationEntryPoint authenticationEntryPoint;
    @Autowired
    private JwtFilter filter;
-   @Autowired
-   private JwtUserDetailsService userDetailsService;
 
 
 

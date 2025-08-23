@@ -9,11 +9,10 @@ import org.springframework.data.domain.Pageable;
 import com.blogpostapp.blogpost.entity.PostEntity;
 
 public interface PostService {
-
-    public PostEntity uploadPost(PostEntity postRequest);
-    public Optional<PostEntity> getPostById(Integer id);
-    public List<PostEntity> getAllPosts();
-    public Page<PostEntity> getPaginatedPosts(Pageable pageable);
-    public void deletePost(Integer id);
-    public boolean existsByContent(String content);
+    PostEntity uploadPost(PostEntity postRequest);
+    Optional<PostEntity> getPostById(Integer id);
+    List<PostEntity> getAllPosts();
+    Page<PostEntity> getPaginatedPosts(Pageable pageable);
+    void deletePost(Integer id);
+    boolean existsByContent(String content);
 }
