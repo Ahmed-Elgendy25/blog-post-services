@@ -34,6 +34,9 @@ public class PostEntity {
     @Column(name = "content",columnDefinition = "TEXT")
     private String content;
     
+    @Column(name = "likes")
+    private Integer likes;
+
     @ManyToMany
     private Set<UserEntity> collaboratingUsers  = new HashSet<>();
 
@@ -45,6 +48,7 @@ public class PostEntity {
         this.date = date;
         this.durationRead = durationRead;
         this.content = content;
+        this.likes = 0;
     }
 
     public Integer getId() {
@@ -103,7 +107,7 @@ public class PostEntity {
     @Override
     public String toString() {
         return "Post [id=" + id + ", authorName=" + author.getFirstName() + " " + author.getLastName() + ", date=" + date + ", durationRead=" + durationRead
-                + ", content=" + content + "]";
+                + ", content=" + content + ", likes=" + likes + "]";
     }
 
     public void setTitle(String title) {
@@ -132,6 +136,14 @@ public class PostEntity {
 
     public void setCollaboratingUsers(Set<UserEntity> collaboratingUsers) {
         this.collaboratingUsers = collaboratingUsers;
+    }
+
+    public Integer getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Integer likes) {
+        this.likes = likes;
     }
     
 }
