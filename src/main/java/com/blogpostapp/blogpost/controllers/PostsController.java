@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/posts")
@@ -91,6 +94,20 @@ public class PostsController {
                                .body("Error retrieving post: " + e.getMessage());
         }
     }
+   
+    @PostMapping("/{id}")
+    public String addLikes(@RequestBody Integer id) {
+        //TODO: process POST request
+
+        postServices.getPostById(id).ifPresent(post->{
+            post.setLikes(post.getLikes() + 1);
+            postServices.uploadPost(post);
+        });
+        
+        return postServices.getPostById(id).get().getLikes().toString();
+    }
+    
+   
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
