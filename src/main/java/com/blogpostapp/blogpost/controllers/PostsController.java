@@ -1,6 +1,7 @@
 package com.blogpostapp.blogpost.controllers;
 
 import com.blogpostapp.blogpost.dto.PostDTO;
+import com.blogpostapp.blogpost.dto.PostHateoasDTO;
 import com.blogpostapp.blogpost.dto.PostSummaryDTO;
 import com.blogpostapp.blogpost.entity.PostEntity;
 import com.blogpostapp.blogpost.entity.UserEntity;
@@ -95,6 +96,22 @@ public class PostsController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                .body("Error retrieving post: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/hateoas")
+    public ResponseEntity<EntityModel<PostHateoasDTO>> getPostWithHateoas(@PathVariable Integer id) {
+        try {
+            return postServices.getPostById(id)
+                .map(post -> {
+                    PostHateoasDTO responseDto = convertToHateoasDTO(post);
+                    EntityModel<PostHateoasDTO> postModel = EntityModel.of(responseDto);
+                    addPostHateoasLinks(postModel, post);
+                    return ResponseEntity.ok(postModel);
+                })
+                .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
    
@@ -227,6 +244,34 @@ public class PostsController {
             post.getDate(),
             post.getLikes()
         );
+    }
+    
+    private PostHateoasDTO convertToHateoasDTO(PostEntity post) {
+        return new PostHateoasDTO(
+            post.getId(),
+            post.getContent(),
+            post.getAuthor().getId(),
+            post.getDurationRead(),
+            post.getPostImg(),
+            post.getTitle(),
+            post.getSubTitle(),
+            post.getDate(),
+            post.getLikes()
+        );
+    }
+    
+    private void addPostHateoasLinks(EntityModel<PostHateoasDTO> postModel, PostEntity post) {
+        // Self link
+        postModel.add(linkTo(methodOn(PostsController.class)
+            .getPostWithHateoas(post.getId())).withSelfRel());
+        
+        // Comments link - points to the CommentController endpoint
+        postModel.add(linkTo(methodOn(CommentController.class)
+            .getCommentsByPostId(post.getId(), 0, 10, true)).withRel("comments"));
+        
+        // Author link
+        postModel.add(linkTo(methodOn(UserController.class)
+            .userById(post.getAuthorId())).withRel("author"));
     }
     
     private void addPostLinks(EntityModel<PostDTO> postModel, PostEntity post) {

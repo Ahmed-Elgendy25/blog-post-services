@@ -233,8 +233,7 @@ public class CommentController {
             .orElseThrow(() -> new IllegalArgumentException("Post not found"));
         comment.setPost(post);
         
-        // Set author - Note: For simplicity, creating a UserEntity with just ID
-        // In a real application, you'd fetch the full user entity
+        // Set author - Create a UserEntity with the ID (we only need the ID for the relationship)
         UserEntity author = new UserEntity();
         author.setId(request.authorId());
         comment.setAuthor(author);
@@ -250,19 +249,11 @@ public class CommentController {
     }
 
     private CommentResponseDTO convertToResponseDTO(CommentEntity comment) {
-        String authorName = comment.getAuthor() != null ? 
-            comment.getAuthor().getFirstName() + " " + comment.getAuthor().getLastName() : 
-            "Unknown Author";
-            
         return new CommentResponseDTO(
             comment.getId(),
             comment.getContent(),
-            comment.getCreatedAt(),
-            comment.getUpdatedAt(),
-            comment.getPostId(),
             comment.getAuthorId(),
-            authorName,
-            comment.getParentCommentId(),
+            comment.getCreatedAt().toLocalDate(),
             comment.getLikes()
         );
     }
@@ -271,35 +262,20 @@ public class CommentController {
         // Self link
         commentModel.add(linkTo(methodOn(CommentController.class)
             .getCommentById(comment.getId())).withSelfRel());
+            
         
-        // Link to post
+        // Link to post (assuming PostsController exists)
         commentModel.add(linkTo(methodOn(PostsController.class)
             .getPostById(comment.getPostId())).withRel("post"));
         
-        // Link to replies if this is a top-level comment
+        // Link to author
+        commentModel.add(linkTo(methodOn(UserController.class)
+            .userById(comment.getAuthorId())).withRel("author"));
+        
+        // Link to replies - only for top-level comments
         if (comment.getParentComment() == null) {
             commentModel.add(linkTo(methodOn(CommentController.class)
                 .getReplies(comment.getId())).withRel("replies"));
         }
-        
-        // Link to parent comment if this is a reply
-        if (comment.getParentComment() != null) {
-            commentModel.add(linkTo(methodOn(CommentController.class)
-                .getCommentById(comment.getParentCommentId())).withRel("parent"));
-        }
-        
-        // Action links
-        commentModel.add(linkTo(methodOn(CommentController.class)
-            .likeComment(comment.getId())).withRel("like"));
-        
-        commentModel.add(linkTo(methodOn(CommentController.class)
-            .updateComment(comment.getId(), null)).withRel("update"));
-        
-        commentModel.add(linkTo(methodOn(CommentController.class)
-            .deleteComment(comment.getId())).withRel("delete"));
-        
-        // Link to all comments for this post
-        commentModel.add(linkTo(methodOn(CommentController.class)
-            .getCommentsByPostId(comment.getPostId(), 0, 10, false)).withRel("post-comments"));
     }
 }
