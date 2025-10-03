@@ -1,7 +1,6 @@
 package com.blogpostapp.blogpost.controllers;
 
 import com.blogpostapp.blogpost.dto.PostDTO;
-import com.blogpostapp.blogpost.dto.PostHateoasDTO;
 import com.blogpostapp.blogpost.dto.PostSummaryDTO;
 import com.blogpostapp.blogpost.entity.PostEntity;
 import com.blogpostapp.blogpost.entity.UserEntity;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,8 +23,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 
 @RestController
@@ -96,66 +92,6 @@ public class PostsController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                .body("Error retrieving post: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/{id}/hateoas")
-    public ResponseEntity<EntityModel<PostHateoasDTO>> getPostWithHateoas(@PathVariable Integer id) {
-        try {
-            return postServices.getPostById(id)
-                .map(post -> {
-                    PostHateoasDTO responseDto = convertToHateoasDTO(post);
-                    EntityModel<PostHateoasDTO> postModel = EntityModel.of(responseDto);
-                    addPostHateoasLinks(postModel, post);
-                    return ResponseEntity.ok(postModel);
-                })
-                .orElse(ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-   
-    @PostMapping("/{id}/like")
-    @PreAuthorize("hasAnyAuthority('author', 'user')")
-    public ResponseEntity<EntityModel<PostDTO>> addLikes(@PathVariable Integer id) {
-        try {
-            return postServices.getPostById(id)
-                .map(post -> {
-                    post.setLikes(post.getLikes() + 1);
-                    PostEntity updatedPost = postServices.uploadPost(post);
-                    PostDTO responseDto = convertToDTO(updatedPost);
-                    
-                    EntityModel<PostDTO> postModel = EntityModel.of(responseDto);
-                    addPostLinks(postModel, updatedPost);
-                    
-                    return ResponseEntity.ok(postModel);
-                })
-                .orElse(ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    
-    // Endpoint to get comments for a specific post (redirects to CommentController)
-    @GetMapping("/{id}/comments")
-    public ResponseEntity<?> getPostComments(@PathVariable Integer id,
-                                           @RequestParam(defaultValue = "0") int page,
-                                           @RequestParam(defaultValue = "10") int size) {
-        // This endpoint provides a redirect to the comments API
-        try {
-            if (!postServices.getPostById(id).isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            // Return HATEOAS link to the actual comments endpoint
-            EntityModel<String> response = EntityModel.of("Use the 'comments' link to access comments for this post");
-            response.add(linkTo(PostsController.class)
-                .slash("comments").slash("post").slash(id)
-                .withRel("comments"));
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
@@ -241,58 +177,7 @@ public class PostsController {
             post.getPostImg(),
             post.getTitle(),
             post.getSubTitle(),
-            post.getDate(),
-            post.getLikes()
+            post.getDate()
         );
-    }
-    
-    private PostHateoasDTO convertToHateoasDTO(PostEntity post) {
-        return new PostHateoasDTO(
-            post.getId(),
-            post.getContent(),
-            post.getAuthor().getId(),
-            post.getDurationRead(),
-            post.getPostImg(),
-            post.getTitle(),
-            post.getSubTitle(),
-            post.getDate(),
-            post.getLikes()
-        );
-    }
-    
-    private void addPostHateoasLinks(EntityModel<PostHateoasDTO> postModel, PostEntity post) {
-        // Self link
-        postModel.add(linkTo(methodOn(PostsController.class)
-            .getPostWithHateoas(post.getId())).withSelfRel());
-        
-        // Comments link - points to the CommentController endpoint
-        postModel.add(linkTo(methodOn(CommentController.class)
-            .getCommentsByPostId(post.getId(), 0, 10, true)).withRel("comments"));
-        
-        // Author link
-        postModel.add(linkTo(methodOn(UserController.class)
-            .userById(post.getAuthorId())).withRel("author"));
-    }
-    
-    private void addPostLinks(EntityModel<PostDTO> postModel, PostEntity post) {
-        // Self link
-        postModel.add(linkTo(methodOn(PostsController.class)
-            .getPostById(post.getId())).withSelfRel());
-        
-        // Link to like this post
-        postModel.add(linkTo(methodOn(PostsController.class)
-            .addLikes(post.getId())).withRel("like"));
-        
-        // Link to comments for this post
-        postModel.add(linkTo(PostsController.class)
-            .slash(post.getId()).slash("comments").withRel("comments"));
-        
-        // Link to comment count  
-        postModel.add(linkTo(PostsController.class)
-            .slash(post.getId()).slash("comments").slash("count").withRel("comment-count"));
-        
-        // Link to paginated posts
-        postModel.add(linkTo(methodOn(PostsController.class)
-            .getPaginatedPosts(0, 10, "date", "desc")).withRel("all-posts"));
     }
 }

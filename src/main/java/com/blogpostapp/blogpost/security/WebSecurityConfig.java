@@ -34,8 +34,10 @@ public class WebSecurityConfig {
       return http
          .csrf(AbstractHttpConfigurer::disable)
          .authorizeHttpRequests(
-            request -> request.requestMatchers("/api/auth/**","/api/posts/{id}/hateoas").permitAll()
-                  .requestMatchers("/api/posts/create-article","api/posts/paginated").hasAuthority("author")
+            request -> request.requestMatchers("/api/auth/**").permitAll()
+                  .requestMatchers("/api/posts/**").permitAll()  // Allow public access to all posts endpoints
+                  .requestMatchers("/api/users/**").permitAll()     // Allow public access to user info
+                  .requestMatchers("/api/posts/create-article").hasAuthority("author")  // Restrict creation to authors
                   .anyRequest().authenticated()
             
          )
