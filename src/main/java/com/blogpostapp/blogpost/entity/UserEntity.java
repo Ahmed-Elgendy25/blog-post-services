@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -43,15 +41,6 @@ public class UserEntity implements UserDetails {
     @Column(name = "instagram_profile")
     private String instagramProfile;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type")
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "user_types",
-        joinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<UserType> type = new ArrayList<>();
-    
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "user_post",
@@ -61,18 +50,14 @@ public class UserEntity implements UserDetails {
     )
     private Set<PostEntity> collaboratingPosts = new HashSet<>();
 
-    public enum UserType {
-        user, author
-    }
     public UserEntity() {
         
     }
-    public UserEntity(String firstName, String lastName, String email, String password, List<UserType> type) {
+    public UserEntity(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
-        this.type = type;
     }
 
 
@@ -125,14 +110,6 @@ public class UserEntity implements UserDetails {
         this.userImg = userImg;
     }
 
-    public List<UserType> getType() {
-        return type;
-    }
-
-    public void setType(List<UserType> type) {
-        this.type = type;
-    }
-
     public Set<PostEntity> getCollaboratedPosts() {
         return collaboratingPosts ;
     }
@@ -144,14 +121,12 @@ public class UserEntity implements UserDetails {
     @Override
     public String toString() {
         return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
-                + ", password=" + password + ", type=" + type +     
-                "]";
+                + ", password=" + password + "]";
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return type.stream()
-            .map(role -> new SimpleGrantedAuthority(role.name()))
-            .collect(Collectors.toList());
+        // All users are authors by default
+        return List.of(new SimpleGrantedAuthority("author"));
     }
     
     @Override

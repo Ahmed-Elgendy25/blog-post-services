@@ -1,7 +1,5 @@
 package com.blogpostapp.blogpost.services;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +29,8 @@ public class UserServiceImp implements UserService{
     @Transactional
     @Override
     public UserEntity registerUser(UserEntity user) {
-      List<UserEntity.UserType> type = new ArrayList<UserEntity.UserType>();
-      type.addAll(user.getType());
-      user.setType(type);
-      
-      userRepository.save(user);
-
+        // All users are authors by default - no need to set type
+        userRepository.save(user);
         return user;
     }
 

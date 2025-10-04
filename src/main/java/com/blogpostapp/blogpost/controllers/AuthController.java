@@ -60,7 +60,6 @@ public class AuthController {
         newUser.setFirstName(registeredUser.firstName());
         newUser.setLastName(registeredUser.lastName());
         newUser.setUserImg(registeredUser.userImg());
-        newUser.setType(registeredUser.type());
         newUser.setPassword(passwordEncoder.encode(registeredUser.password()));
         
         UserEntity savedUser= userService.registerUser(newUser);
