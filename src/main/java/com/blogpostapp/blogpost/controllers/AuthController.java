@@ -14,7 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.blogpostapp.blogpost.dto.RegisterUserDTO;
-import com.blogpostapp.blogpost.entity.UserEntity;
+import com.blogpostapp.blogpost.entities.UserEntity;
 import com.blogpostapp.blogpost.security.JwtUserDetailsService;
 import com.blogpostapp.blogpost.security.TokenManager;
 import com.blogpostapp.blogpost.security.models.JwtRequestModel;

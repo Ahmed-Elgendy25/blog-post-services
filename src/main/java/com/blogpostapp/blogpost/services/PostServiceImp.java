@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.blogpostapp.blogpost.dao.PostRepository;
 import com.blogpostapp.blogpost.dao.UserRepository;
-import com.blogpostapp.blogpost.entity.PostEntity;
-import com.blogpostapp.blogpost.entity.UserEntity;
+import com.blogpostapp.blogpost.entities.PostEntity;
+import com.blogpostapp.blogpost.entities.UserEntity;
 
 @Service
 public class PostServiceImp implements PostService {

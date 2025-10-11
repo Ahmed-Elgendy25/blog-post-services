@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.blogpostapp.blogpost.dao.UserRepository;
-import com.blogpostapp.blogpost.entity.UserEntity; 
+import com.blogpostapp.blogpost.entities.UserEntity; 
 
 @Service
 public class JwtUserDetailsService implements UserDetailsService { 

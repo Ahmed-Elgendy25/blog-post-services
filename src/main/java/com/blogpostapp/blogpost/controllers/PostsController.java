@@ -2,8 +2,8 @@ package com.blogpostapp.blogpost.controllers;
 
 import com.blogpostapp.blogpost.dto.PostDTO;
 import com.blogpostapp.blogpost.dto.PostSummaryDTO;
-import com.blogpostapp.blogpost.entity.PostEntity;
-import com.blogpostapp.blogpost.entity.UserEntity;
+import com.blogpostapp.blogpost.entities.PostEntity;
+import com.blogpostapp.blogpost.entities.UserEntity;
 import com.blogpostapp.blogpost.services.PostServiceImp;
 
 import org.springframework.data.domain.Page;

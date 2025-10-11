@@ -1,4 +1,4 @@
-package com.blogpostapp.blogpost.entity;
+package com.blogpostapp.blogpost.entities;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.*;
 
+
+// Change it's name to AuthorsEntity later
 @Entity
 @Table(name = "users")
 public class UserEntity implements UserDetails {

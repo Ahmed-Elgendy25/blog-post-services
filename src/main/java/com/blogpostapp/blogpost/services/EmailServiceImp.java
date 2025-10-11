@@ -1,8 +1,6 @@
 package com.blogpostapp.blogpost.services;
 
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +11,9 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import com.blogpostapp.blogpost.dao.SubscribersRepository;
+import com.blogpostapp.blogpost.entities.SubscribersEntity;
+
 @Service
 public class EmailServiceImp implements EmailService {
     
@@ -20,6 +21,9 @@ public class EmailServiceImp implements EmailService {
     
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private SubscribersRepository subscribersRepository;
     
     @Value("${spring.mail.username:noreply@blogpost.com}")
     private String fromEmail;
@@ -27,19 +31,10 @@ public class EmailServiceImp implements EmailService {
     @Value("${email.mock.enabled:false}")
     private boolean mockEmailEnabled;
 
-    // In-memory storage for subscribers (in production, use database)
-    private final Set<String> subscribers = ConcurrentHashMap.newKeySet();
-    
-    // Default subscribers for demo purposes
-    public EmailServiceImp() {
-        // Add some default demo subscribers
-        subscribers.add("subscriber1@example.com");
-        subscribers.add("subscriber2@example.com");
-        subscribers.add("admin@blogpost.com");
-    }
-    
     @Override
     public void sendUpdateToSubscribers(String title, String url) {
+        List<String> subscribers = subscribersRepository.findAllEmails();
+
         if (subscribers.isEmpty()) {
             logger.info("No subscribers to notify for post: {}", title);
             return;
@@ -56,7 +51,6 @@ public class EmailServiceImp implements EmailService {
                 logger.debug("Notification sent successfully to: {}", subscriberEmail);
                 success++;
             } catch (MailAuthenticationException e) {
-                // auth-specific message
                 logger.error("Failed to send notification to {}: Email authentication failed. Check SMTP username/password or app password.", subscriberEmail);
                 fail++;
             } catch (Exception e) {
@@ -70,23 +64,30 @@ public class EmailServiceImp implements EmailService {
     
     @Override
     public void addSubscriber(String email) {
-        if (email != null && email.contains("@")) {
-            subscribers.add(email.toLowerCase().trim());
-            logger.info("Added new subscriber: {}", email);
-        } else {
+        if (email == null || !email.contains("@")) {
             logger.warn("Invalid email address provided: {}", email);
+            return;
         }
+        String normalized = email.toLowerCase().trim();
+        if (subscribersRepository.existsByEmailIgnoreCase(normalized)) {
+            logger.info("Subscriber already exists: {}", normalized);
+            return;
+        }
+        subscribersRepository.save(new SubscribersEntity(normalized));
+        logger.info("Added new subscriber: {}", normalized);
     }
     
     @Override
     public void removeSubscriber(String email) {
-        if (email != null) {
-            boolean removed = subscribers.remove(email.toLowerCase().trim());
-            if (removed) {
-                logger.info("Removed subscriber: {}", email);
-            } else {
-                logger.warn("Subscriber not found: {}", email);
-            }
+        if (email == null || email.trim().isEmpty()) {
+            logger.warn("Email is required to remove subscriber");
+            return;
+        }
+        long deleted = subscribersRepository.deleteByEmailIgnoreCase(email.trim());
+        if (deleted > 0) {
+            logger.info("Removed subscriber: {}", email);
+        } else {
+            logger.warn("Subscriber not found: {}", email);
         }
     }
     
@@ -126,12 +127,14 @@ public class EmailServiceImp implements EmailService {
             """, title, url);
     }
     
-    // Utility methods for managing subscribers
+    // Utility methods backed by the repository
+    @Override
     public List<String> getAllSubscribers() {
-        return List.copyOf(subscribers);
+        return subscribersRepository.findAllEmails();
     }
     
+    @Override
     public int getSubscriberCount() {
-        return subscribers.size();
+        return (int) subscribersRepository.count();
     }
 }

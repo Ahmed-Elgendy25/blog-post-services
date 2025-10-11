@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import org.springframework.stereotype.Repository;
 
-import com.blogpostapp.blogpost.entity.PostEntity;
+import com.blogpostapp.blogpost.entities.PostEntity;
 
 import java.util.Optional;
 

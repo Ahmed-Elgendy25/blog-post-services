@@ -7,9 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.blogpostapp.blogpost.dao.UserRepository;
-import com.blogpostapp.blogpost.dto.LoginUserDTO;
 import com.blogpostapp.blogpost.dto.UserDTO;
-import com.blogpostapp.blogpost.entity.UserEntity;
+import com.blogpostapp.blogpost.entities.UserEntity;
 
 @Service
 public class UserServiceImp implements UserService{
