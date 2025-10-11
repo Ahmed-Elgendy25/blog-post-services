@@ -38,7 +38,7 @@ public class WebSecurityConfig {
                   .requestMatchers("/api/posts/**").permitAll()  // Allow public access to all posts endpoints
                   .requestMatchers("/api/users/**").permitAll()     // Allow public access to user info
                   .requestMatchers("/api/notifications/subscribe", "/api/notifications/unsubscribe", "/api/notifications/subscribers/count").permitAll()  // Allow public subscription management
-                  .requestMatchers("/api/posts/create-article").hasAuthority("author")  // Restrict creation to authors
+                  .requestMatchers("/api/posts/create-article","/api/notifications/notify-new-post").hasAuthority("author")  // Restrict creation to authors
                   .anyRequest().authenticated()
             
          )

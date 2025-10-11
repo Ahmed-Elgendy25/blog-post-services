@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,9 @@ public class EmailServiceImp implements EmailService {
     @Value("${spring.mail.username:noreply@blogpost.com}")
     private String fromEmail;
     
+    @Value("${email.mock.enabled:false}")
+    private boolean mockEmailEnabled;
+
     // In-memory storage for subscribers (in production, use database)
     private final Set<String> subscribers = ConcurrentHashMap.newKeySet();
     
@@ -40,19 +44,28 @@ public class EmailServiceImp implements EmailService {
             logger.info("No subscribers to notify for post: {}", title);
             return;
         }
-        
+
         logger.info("Sending notification to {} subscribers for post: {}", subscribers.size(), title);
-        
+
+        int success = 0;
+        int fail = 0;
+
         for (String subscriberEmail : subscribers) {
             try {
                 sendEmailToSubscriber(subscriberEmail, title, url);
                 logger.debug("Notification sent successfully to: {}", subscriberEmail);
+                success++;
+            } catch (MailAuthenticationException e) {
+                // auth-specific message
+                logger.error("Failed to send notification to {}: Email authentication failed. Check SMTP username/password or app password.", subscriberEmail);
+                fail++;
             } catch (Exception e) {
                 logger.error("Failed to send notification to {}: {}", subscriberEmail, e.getMessage());
+                fail++;
             }
         }
-        
-        logger.info("Finished sending notifications for post: {}", title);
+
+        logger.info("Email sending completed for post '{}': {} successful, {} failed", title, success, fail);
     }
     
     @Override
@@ -78,18 +91,19 @@ public class EmailServiceImp implements EmailService {
     }
     
     private void sendEmailToSubscriber(String email, String title, String url) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(email);
-            message.setSubject("New Blog Post: " + title);
-            message.setText(buildEmailContent(title, url));
-            
-            mailSender.send(message);
-        } catch (Exception e) {
-            logger.error("Failed to send email to {}: {}", email, e.getMessage());
-            throw e;
+        if (mockEmailEnabled) {
+            logger.info("MOCK EMAIL - Would send to {} | Subject: New Blog Post: {}", email, title);
+            return;
         }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(email);
+        message.setSubject("New Blog Post: " + title);
+        message.setText(buildEmailContent(title, url));
+
+        // Let exceptions bubble up to be logged once in the caller
+        mailSender.send(message);
     }
     
     private String buildEmailContent(String title, String url) {
