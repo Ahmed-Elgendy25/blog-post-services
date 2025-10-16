@@ -6,12 +6,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.blogpostapp.blogpost.dto.RegisterUserDTO;
 import com.blogpostapp.blogpost.entities.UserEntity;
@@ -22,6 +24,7 @@ import com.blogpostapp.blogpost.security.models.JwtResponseModel;
 import com.blogpostapp.blogpost.services.UserServiceImp;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -67,33 +70,49 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponseModel> createToken(@RequestBody JwtRequestModel
-        request) throws Exception {
-        try {
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        } catch (DisabledException e) {
-            throw new Exception("USER_DISABLED", e);
-        } catch (BadCredentialsException e) {
-            throw new Exception("INVALID_CREDENTIALS", e);
-        }
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-        final String jwtToken = tokenManager.generateJwtToken(userDetails);
-        
-        // Convert authorities to a list of role strings
-        List<String> roles = userDetails.getAuthorities().stream()
-            .map(authority -> authority.getAuthority())
-            .collect(Collectors.toList());
-        
-        // Get user ID from UserDetails
-        Integer userId = null;
-        if (userDetails instanceof UserEntity) {
-            userId = ((UserEntity) userDetails).getId();
-        }
-        
-        return ResponseEntity.ok(new JwtResponseModel(jwtToken, roles, userId));
+public ResponseEntity<?> createToken(@RequestBody JwtRequestModel request) {
+    try {
+        // Try to authenticate the user
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+    } catch (DisabledException e) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(Map.of("error", "User account is disabled"));
+    } catch (BadCredentialsException e) {
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(Map.of("error", "Invalid email or password"));
     }
-    
+
+    // Load user details (email might not exist)
+    UserDetails userDetails;
+    try {
+        userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+    } catch (UsernameNotFoundException e) {
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", "Email does not exist"));
+    }
+
+    // Generate JWT
+    final String jwtToken = tokenManager.generateJwtToken(userDetails);
+
+    // Extract roles
+    List<String> roles = userDetails.getAuthorities().stream()
+        .map(authority -> authority.getAuthority())
+        .collect(Collectors.toList());
+
+    // Get user ID if available
+    Integer userId = null;
+    if (userDetails instanceof UserEntity) {
+        userId = ((UserEntity) userDetails).getId();
+    }
+
+    // Return success response
+    return ResponseEntity.ok(new JwtResponseModel(jwtToken, roles, userId));
+}
 
  
     
@@ -103,42 +122,3 @@ public class AuthController {
 
 
 
-
-/*
- *     private JwtService jwtService;
-    // private AuthenticationManager authManager;
-    private UserService userService;
-
-    public AuthRestController(JwtService jwtService, UserService theUserService) {
-        this.jwtService = jwtService;
-        this.userService = theUserService;
-    }
-@PostMapping("/login")
-public String  login(@RequestBody AuthUserDTO user) {
-    if (userService.loginUser(user) == false) {
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
-    }
-    return jwtService.generateToken(user.email());
-}
-
- */
-
-
-
-/*
-    @PostMapping("/login")
-public ResponseEntity<String> authAndGetToken(@RequestBody AuthUserDTO user) {
-    try {
-        Authentication authentication = authManager.authenticate(
-            new UsernamePasswordAuthenticationToken(user.email(), user.password())
-        );
-        if (authentication.isAuthenticated()) {
-            String token = jwtService.generateToken(user.email());
-            return ResponseEntity.ok(token);
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication failed");
-    } catch (Exception e) {
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials", e);
-    }
-}
-     */
